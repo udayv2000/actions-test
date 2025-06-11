@@ -4,22 +4,43 @@ on:
   push:
     branches:
       - main
+      - dev
 
 jobs:
-  deploy-main-to-axxonet:
+  deploy-to-main:
+    if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     steps:
-    - name: Set up SSH
+    - name: Set up SSH for Main
       run: |
         mkdir -p ~/.ssh
         echo "${{ secrets.SSH_PRIVATE_KEY_AXXONET }}" > ~/.ssh/id_ed25519
         chmod 600 ~/.ssh/id_ed25519
         ssh-keyscan -H ${{ secrets.SSH_HOST_AXXONET }} >> ~/.ssh/known_hosts
 
-    - name: Deploy on AXXONET Server
+    - name: Deploy on Main Server
       run: |
         ssh ${{ secrets.SSH_USERNAME_AXXONET }}@${{ secrets.SSH_HOST_AXXONET }} << EOF
           cd /home/axxonet/test/
           git pull origin main
+          cat README.md
+        EOF
+
+  deploy-to-dev:
+    if: github.ref == 'refs/heads/dev'
+    runs-on: ubuntu-latest
+    steps:
+    - name: Set up SSH for Dev
+      run: |
+        mkdir -p ~/.ssh
+        echo "${{ secrets.SSH_PRIVATE_KEY_AXXONET }}" > ~/.ssh/id_ed25519
+        chmod 600 ~/.ssh/id_ed25519
+        ssh-keyscan -H ${{ secrets.SSH_HOST_AXXONET }} >> ~/.ssh/known_hosts
+
+    - name: Deploy on Dev Server
+      run: |
+        ssh ${{ secrets.SSH_USERNAME_AXXONET }}@${{ secrets.SSH_HOST_AXXONET }} << EOF
+          cd /home/axxonet/test/
+          git pull origin dev
           cat README.md
         EOF
