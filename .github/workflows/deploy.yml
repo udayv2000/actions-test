@@ -19,6 +19,7 @@ jobs:
     - name: Deploy on AXXONET Server
       run: |
         ssh ${{ secrets.SSH_USERNAME_AXXONET }}@${{ secrets.SSH_HOST_AXXONET }} << EOF
-          cd /home/axxonet/latticeflow/mes/
-          cat docker-compose.yml
+          cd /home/axxonet/test/
+          git pull origin main
+          cat README.md
         EOF
