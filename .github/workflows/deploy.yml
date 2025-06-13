@@ -17,21 +17,21 @@ jobs:
       id: set-vars
       run: |
         if [ "${{ env.BRANCH_NAME }}" = "main" ]; then
-          echo "SSH_KEY=${{ secrets.SSH_PRIVATE_KEY_AXXONET_MAIN }}" >> $GITHUB_ENV
           echo "SSH_HOST=${{ secrets.SSH_HOST_AXXONET_MAIN }}" >> $GITHUB_ENV
           echo "SSH_USER=${{ secrets.SSH_USERNAME_AXXONET_MAIN }}" >> $GITHUB_ENV
           echo "DEPLOY_PATH=/home/ubuntu/test" >> $GITHUB_ENV
+          echo "SSH_KEY_SECRET=SSH_PRIVATE_KEY_AXXONET_MAIN" >> $GITHUB_ENV
         elif [ "${{ env.BRANCH_NAME }}" = "dev" ]; then
-          echo "SSH_KEY=${{ secrets.SSH_PRIVATE_KEY_AXXONET_DEV }}" >> $GITHUB_ENV
           echo "SSH_HOST=${{ secrets.SSH_HOST_AXXONET_DEV }}" >> $GITHUB_ENV
           echo "SSH_USER=${{ secrets.SSH_USERNAME_AXXONET_DEV }}" >> $GITHUB_ENV
           echo "DEPLOY_PATH=/home/axxonet/test" >> $GITHUB_ENV
+          echo "SSH_KEY_SECRET=SSH_PRIVATE_KEY_AXXONET_DEV" >> $GITHUB_ENV
         fi
 
     - name: Set up SSH
       run: |
         mkdir -p ~/.ssh
-        echo "${SSH_KEY}" > ~/.ssh/id_ed25519
+        echo "${{ secrets[env.SSH_KEY_SECRET] }}" > ~/.ssh/id_ed25519
         chmod 600 ~/.ssh/id_ed25519
         ssh-keyscan -H "$SSH_HOST" >> ~/.ssh/known_hosts
 
