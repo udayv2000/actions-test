@@ -2,26 +2,39 @@ name: Deploy MES Application
 
 on:
   push:
-    branches:
-      - main
-      - dev
+    tags:
+      - 'dev-v*'
+      - 'main-v*'
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
-    env:
-      BRANCH_NAME: ${{ github.ref_name }}
 
     steps:
-    - name: Set environment variables
-      id: set-vars
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Extract branch from tag
+      id: extract_branch
       run: |
-        if [ "${{ env.BRANCH_NAME }}" = "main" ]; then
+        TAG_NAME=${GITHUB_REF#refs/tags/}
+        if [[ "$TAG_NAME" == dev-v* ]]; then
+          echo "branch=dev" >> $GITHUB_OUTPUT
+        elif [[ "$TAG_NAME" == main-v* ]]; then
+          echo "branch=main" >> $GITHUB_OUTPUT
+        else
+          echo "Invalid tag format: $TAG_NAME"
+          exit 1
+        fi
+
+    - name: Set environment variables based on branch
+      run: |
+        if [ "${{ steps.extract_branch.outputs.branch }}" = "main" ]; then
           echo "SSH_HOST=${{ secrets.SSH_HOST_AXXONET_MAIN }}" >> $GITHUB_ENV
           echo "SSH_USER=${{ secrets.SSH_USERNAME_AXXONET_MAIN }}" >> $GITHUB_ENV
           echo "DEPLOY_PATH=/home/ubuntu/test" >> $GITHUB_ENV
           echo "SSH_KEY_SECRET=SSH_PRIVATE_KEY_AXXONET_MAIN" >> $GITHUB_ENV
-        elif [ "${{ env.BRANCH_NAME }}" = "dev" ]; then
+        elif [ "${{ steps.extract_branch.outputs.branch }}" = "dev" ]; then
           echo "SSH_HOST=${{ secrets.SSH_HOST_AXXONET_DEV }}" >> $GITHUB_ENV
           echo "SSH_USER=${{ secrets.SSH_USERNAME_AXXONET_DEV }}" >> $GITHUB_ENV
           echo "DEPLOY_PATH=/home/axxonet/test" >> $GITHUB_ENV
@@ -39,6 +52,8 @@ jobs:
       run: |
         ssh ${SSH_USER}@${SSH_HOST} << EOF
           cd ${DEPLOY_PATH}
-          git pull origin ${BRANCH_NAME}
+          git fetch --all
+          git checkout ${{ steps.extract_branch.outputs.branch }}
+          git pull origin ${{ steps.extract_branch.outputs.branch }}
           cat README.md
         EOF
