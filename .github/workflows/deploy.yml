@@ -1,7 +1,7 @@
 name: Deploy MES Application
 
 on:
-  workflow_dispatch:   # allows manual runs
+  workflow_dispatch:   # manual trigger
   push:
     tags:
       - 'dev-v*'
@@ -75,19 +75,20 @@ jobs:
           python-version: 3.11
 
       - name: Install dependencies
-        working-directory: e2e/ai_insights
+        working-directory: e2e/ai_insights/latticeflow_e2e_ai_insights.egg-info
         run: |
           python -m venv venv
           source venv/bin/activate
           pip install --upgrade pip setuptools wheel
-          pip install pytest playwright
+          pip install -r requires.txt
           playwright install
 
       - name: Run specific Playwright test
         working-directory: e2e/ai_insights
         run: |
-          source venv/bin/activate
-          pytest tests/test_login_TC_003_Verify_Login_page_links.py 
+          source latticeflow_e2e_ai_insights.egg-info/venv/bin/activate
+          pytest tests/test_login_TC_003_Verify_Login_page_links.py
+
       - name: Upload test results and traces
         uses: actions/upload-artifact@v4
         with:
