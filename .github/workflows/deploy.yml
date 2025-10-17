@@ -87,11 +87,7 @@ jobs:
         working-directory: e2e/ai_insights
         run: |
           source venv/bin/activate
-          pytest tests/test_login_TC_003_Verify_Login_page_links.py \
-                 --maxfail=1 --disable-warnings -q \
-                 --html=tests/report.html \
-                 --self-contained-html \
-                 --trace=retain-on-failure
+          pytest tests/test_login_TC_003_Verify_Login_page_links.py 
       - name: Upload test results and traces
         uses: actions/upload-artifact@v4
         with:
