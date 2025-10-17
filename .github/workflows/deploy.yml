@@ -72,13 +72,14 @@ jobs:
           python-version: 3.11
 
       - name: Install dependencies
-        working-directory: e2e/ai_insights
-        run: |
-          python -m venv venv
-          source venv/bin/activate
-          pip install --upgrade pip setuptools wheel
-          pip install -e .
-          playwright install
+          working-directory: e2e/ai_insights
+          run: |
+            python -m venv venv
+            source venv/bin/activate
+            pip install --upgrade pip setuptools wheel
+            pip install pytest playwright
+            playwright install
+
 
       - name: Run specific Playwright test
         working-directory: e2e/ai_insights
