@@ -3,8 +3,8 @@ name: Deploy MES Application
 on:
   push:
     tags:
-      - 'dev-v*'
-      - 'main-v*'
+      - 'dev'
+      - 'main'
 
 jobs:
   deploy:
@@ -18,9 +18,9 @@ jobs:
       id: extract_branch
       run: |
         TAG_NAME=${GITHUB_REF#refs/tags/}
-        if [[ "$TAG_NAME" == dev-v* ]]; then
+        if [[ "$TAG_NAME" == dev ]]; then
           echo "branch=dev" >> $GITHUB_OUTPUT
-        elif [[ "$TAG_NAME" == main-v* ]]; then
+        elif [[ "$TAG_NAME" == main ]]; then
           echo "branch=main" >> $GITHUB_OUTPUT
         else
           echo "Invalid tag format: $TAG_NAME"
