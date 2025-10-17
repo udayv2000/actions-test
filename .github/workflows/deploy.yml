@@ -3,9 +3,6 @@ name: Deploy MES Application
 on:
   workflow_dispatch:   # allows manual runs
   push:
-    branches:
-      - dev
-      - main
     tags:
       - 'dev-v*'
       - 'main-v*'
@@ -30,7 +27,8 @@ jobs:
           else
             echo "Invalid tag format: $TAG_NAME"
             exit 1
-          
+          fi
+
       - name: Set environment variables based on branch
         run: |
           if [ "${{ steps.extract_branch.outputs.branch }}" = "main" ]; then
