@@ -1,62 +1,66 @@
 name: Deploy MES Application
 
 on:
+  workflow_dispatch:   # allows manual runs
   push:
+    branches:
+      - dev
+      - main
     tags:
       - 'dev-v*'
       - 'main-v*'
 
 jobs:
   deploy:
+    name: Deploy to Server
     runs-on: ubuntu-latest
 
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
+      - name: Checkout code
+        uses: actions/checkout@v4
 
-    - name: Extract branch from tag
-      id: extract_branch
-      run: |
-        TAG_NAME=${GITHUB_REF#refs/tags/}
-        if [[ "$TAG_NAME" == dev-v* ]]; then
-          echo "branch=dev" >> $GITHUB_OUTPUT
-        elif [[ "$TAG_NAME" == main-v* ]]; then
-          echo "branch=main" >> $GITHUB_OUTPUT
-        else
-          echo "Invalid tag format: $TAG_NAME"
-          exit 1
-        fi
+      - name: Extract branch from tag
+        id: extract_branch
+        run: |
+          TAG_NAME=${GITHUB_REF#refs/tags/}
+          if [[ "$TAG_NAME" == dev-v* ]]; then
+            echo "branch=dev" >> $GITHUB_OUTPUT
+          elif [[ "$TAG_NAME" == main-v* ]]; then
+            echo "branch=main" >> $GITHUB_OUTPUT
+          else
+            echo "Invalid tag format: $TAG_NAME"
+            exit 1
+          
+      - name: Set environment variables based on branch
+        run: |
+          if [ "${{ steps.extract_branch.outputs.branch }}" = "main" ]; then
+            echo "SSH_HOST=${{ secrets.SSH_HOST_AXXONET_MAIN }}" >> $GITHUB_ENV
+            echo "SSH_USER=${{ secrets.SSH_USERNAME_AXXONET_MAIN }}" >> $GITHUB_ENV
+            echo "DEPLOY_PATH=/home/ubuntu/test" >> $GITHUB_ENV
+            echo "SSH_KEY_SECRET=SSH_PRIVATE_KEY_AXXONET_MAIN" >> $GITHUB_ENV
+          elif [ "${{ steps.extract_branch.outputs.branch }}" = "dev" ]; then
+            echo "SSH_HOST=${{ secrets.SSH_HOST_AXXONET_DEV }}" >> $GITHUB_ENV
+            echo "SSH_USER=${{ secrets.SSH_USERNAME_AXXONET_DEV }}" >> $GITHUB_ENV
+            echo "DEPLOY_PATH=/home/axxonet/test" >> $GITHUB_ENV
+            echo "SSH_KEY_SECRET=SSH_PRIVATE_KEY_AXXONET_DEV" >> $GITHUB_ENV
 
-    - name: Set environment variables based on branch
-      run: |
-        if [ "${{ steps.extract_branch.outputs.branch }}" = "main" ]; then
-          echo "SSH_HOST=${{ secrets.SSH_HOST_AXXONET_MAIN }}" >> $GITHUB_ENV
-          echo "SSH_USER=${{ secrets.SSH_USERNAME_AXXONET_MAIN }}" >> $GITHUB_ENV
-          echo "DEPLOY_PATH=/home/ubuntu/test" >> $GITHUB_ENV
-          echo "SSH_KEY_SECRET=SSH_PRIVATE_KEY_AXXONET_MAIN" >> $GITHUB_ENV
-        elif [ "${{ steps.extract_branch.outputs.branch }}" = "dev" ]; then
-          echo "SSH_HOST=${{ secrets.SSH_HOST_AXXONET_DEV }}" >> $GITHUB_ENV
-          echo "SSH_USER=${{ secrets.SSH_USERNAME_AXXONET_DEV }}" >> $GITHUB_ENV
-          echo "DEPLOY_PATH=/home/axxonet/test" >> $GITHUB_ENV
-          echo "SSH_KEY_SECRET=SSH_PRIVATE_KEY_AXXONET_DEV" >> $GITHUB_ENV
-        fi
+      - name: Set up SSH
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets[env.SSH_KEY_SECRET] }}" > ~/.ssh/id_ed25519
+          chmod 600 ~/.ssh/id_ed25519
+          ssh-keyscan -H "$SSH_HOST" >> ~/.ssh/known_hosts
 
-    - name: Set up SSH
-      run: |
-        mkdir -p ~/.ssh
-        echo "${{ secrets[env.SSH_KEY_SECRET] }}" > ~/.ssh/id_ed25519
-        chmod 600 ~/.ssh/id_ed25519
-        ssh-keyscan -H "$SSH_HOST" >> ~/.ssh/known_hosts
+      - name: Deploy to server
+        run: |
+          ssh ${SSH_USER}@${SSH_HOST} << EOF
+            cd ${DEPLOY_PATH}
+            git fetch --all
+            git checkout ${{ steps.extract_branch.outputs.branch }}
+            git pull origin ${{ steps.extract_branch.outputs.branch }}
+            cat README.md
+          EOF
 
-    - name: Deploy to server
-      run: |
-        ssh ${SSH_USER}@${SSH_HOST} << EOF
-          cd ${DEPLOY_PATH}
-          git fetch --all
-          git checkout ${{ steps.extract_branch.outputs.branch }}
-          git pull origin ${{ steps.extract_branch.outputs.branch }}
-          cat README.md
-        EOF
   run-tests:
     name: Run Playwright Demo Test
     runs-on: ubuntu-latest
@@ -72,14 +76,13 @@ jobs:
           python-version: 3.11
 
       - name: Install dependencies
-          working-directory: e2e/ai_insights
-          run: |
-            python -m venv venv
-            source venv/bin/activate
-            pip install --upgrade pip setuptools wheel
-            pip install pytest playwright
-            playwright install
-
+        working-directory: e2e/ai_insights
+        run: |
+          python -m venv venv
+          source venv/bin/activate
+          pip install --upgrade pip setuptools wheel
+          pip install pytest playwright
+          playwright install
 
       - name: Run specific Playwright test
         working-directory: e2e/ai_insights
@@ -98,7 +101,3 @@ jobs:
           path: |
             e2e/ai_insights/tests/report.html
             e2e/ai_insights/test-results/
-
-
-
-        
