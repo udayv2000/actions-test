@@ -1,0 +1,11 @@
+Metadata-Version: 2.4
+Name: latticeflow-e2e-ai_insights
+Version: 0.0.0
+Summary: Latticeflow AI Insights E2E tests.
+License-Expression: LicenseRef-Proprietary
+Project-URL: Homepage, https://mes.aviaenterprises.in
+Requires-Python: >=3.9
+Requires-Dist: playwright~=1.53.0
+Requires-Dist: pytest~=8.3.5
+Requires-Dist: pytest-playwright~=0.5.0
+Requires-Dist: pytest-html

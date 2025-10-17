@@ -1,0 +1,7 @@
+playwright~=1.53.0
+pytest~=8.3.5
+pytest-playwright~=0.5.0
+pytest-html
+openpyxl~=3.1.5
+pytest-check==2.5.3
+Faker==37.6.0
