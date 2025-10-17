@@ -1,0 +1,17 @@
+[project]
+name = "latticeflow-e2e-ai_insights"
+description = "Latticeflow AI Insights E2E tests."
+dynamic = ["version"]
+requires-python = ">=3.9"
+license = "LicenseRef-Proprietary"
+
+dependencies = [
+    "playwright~=1.53.0",
+    "pytest~=8.3.5",
+    "pytest-playwright~=0.5.0",
+    "pytest-html",
+    ]
+
+[project.urls]
+Homepage = "https://mes.aviaenterprises.in"
+
