@@ -91,8 +91,7 @@ jobs:
                  --maxfail=1 --disable-warnings -q \
                  --html=tests/report.html \
                  --self-contained-html \
-                 --trace=on
-
+                 --trace=retain-on-failure
       - name: Upload test results and traces
         uses: actions/upload-artifact@v4
         with:
